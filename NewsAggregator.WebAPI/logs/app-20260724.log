@@ -1,0 +1,250 @@
+2026-07-24 14:38:43.730 +03:00 [INF] No migrations were found in assembly 'NewsAggregator.Infrastructure'. A migration needs to be added before the database can be updated.
+2026-07-24 14:38:43.806 +03:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2026-07-24 14:38:43.815 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2026-07-24 14:38:43.823 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+2026-07-24 14:38:43.832 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsLock" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK___EFMigrationsLock" PRIMARY KEY,
+    "Timestamp" TEXT NOT NULL
+);
+2026-07-24 14:38:43.834 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-07-24 11:38:43.8335557+00:00');
+SELECT changes();
+2026-07-24 14:38:43.923 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+    "ProductVersion" TEXT NOT NULL
+);
+2026-07-24 14:38:43.937 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+2026-07-24 14:38:43.941 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-07-24 14:38:43.948 +03:00 [INF] No migrations were applied. The database is already up to date.
+2026-07-24 14:38:43.950 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM "__EFMigrationsLock";
+2026-07-24 14:38:44.068 +03:00 [INF] User profile is available. Using 'C:\Users\tpido\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-24 14:38:44.074 +03:00 [INF] Фоновый парсер запущен
+2026-07-24 14:38:44.217 +03:00 [INF] Now listening on: http://localhost:5103
+2026-07-24 14:38:44.218 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-24 14:38:44.219 +03:00 [INF] Hosting environment: Development
+2026-07-24 14:38:44.219 +03:00 [INF] Content root path: C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.WebAPI
+2026-07-24 14:39:33.759 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/ - null null
+2026-07-24 14:39:33.775 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-07-24 14:39:34.659 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/ - 404 0 null 900.8492ms
+2026-07-24 14:39:34.664 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5103/, Response status code: 404
+2026-07-24 14:39:46.671 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 14:42:13.929 +03:00 [INF] Application is shutting down...
+2026-07-24 14:42:57.747 +03:00 [INF] No migrations were found in assembly 'NewsAggregator.Infrastructure'. A migration needs to be added before the database can be updated.
+2026-07-24 14:42:57.800 +03:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2026-07-24 14:42:57.827 +03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+2026-07-24 14:42:57.837 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-07-24 11:42:57.8327386+00:00');
+SELECT changes();
+2026-07-24 14:42:57.936 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+    "ProductVersion" TEXT NOT NULL
+);
+2026-07-24 14:42:57.947 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+2026-07-24 14:42:57.952 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-07-24 14:42:57.959 +03:00 [INF] No migrations were applied. The database is already up to date.
+2026-07-24 14:42:57.962 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM "__EFMigrationsLock";
+2026-07-24 14:42:58.016 +03:00 [INF] User profile is available. Using 'C:\Users\tpido\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-24 14:42:58.023 +03:00 [INF] Фоновый парсер запущен
+2026-07-24 14:42:58.095 +03:00 [INF] Now listening on: http://localhost:5103
+2026-07-24 14:42:58.096 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-24 14:42:58.097 +03:00 [INF] Hosting environment: Development
+2026-07-24 14:42:58.098 +03:00 [INF] Content root path: C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.WebAPI
+2026-07-24 14:43:28.168 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger - null null
+2026-07-24 14:43:28.195 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger - 301 0 null 28.2837ms
+2026-07-24 14:43:28.199 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.html - null null
+2026-07-24 14:43:28.248 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.html - 200 null text/html;charset=utf-8 49.6658ms
+2026-07-24 14:43:28.346 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui.css - null null
+2026-07-24 14:43:28.347 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.css - null null
+2026-07-24 14:43:28.351 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-bundle.js - null null
+2026-07-24 14:43:28.353 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-standalone-preset.js - null null
+2026-07-24 14:43:28.356 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.js - null null
+2026-07-24 14:43:28.358 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.js - 200 null application/javascript;charset=utf-8 2.4857ms
+2026-07-24 14:43:28.368 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.css - 200 152 text/css 20.9082ms
+2026-07-24 14:43:28.368 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui.css - 200 26499 text/css 22.0629ms
+2026-07-24 14:43:28.376 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-standalone-preset.js - 200 77731 text/javascript 23.3933ms
+2026-07-24 14:43:28.376 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-bundle.js - 200 421507 text/javascript 25.5948ms
+2026-07-24 14:43:28.532 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/openapi/v1.json - null null
+2026-07-24 14:43:28.535 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-07-24 14:43:28.547 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/favicon-32x32.png - null null
+2026-07-24 14:43:28.550 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/favicon-32x32.png - 200 628 image/png 2.6824ms
+2026-07-24 14:43:28.558 +03:00 [INF] Executing endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 14:43:28.656 +03:00 [INF] Executed endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 14:43:28.659 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/openapi/v1.json - 200 null application/json;charset=utf-8 126.7124ms
+2026-07-24 14:43:58.410 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 14:44:28.944 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/ - null null
+2026-07-24 14:44:28.949 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/ - 404 0 null 4.5984ms
+2026-07-24 14:44:28.952 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5103/, Response status code: 404
+2026-07-24 14:44:29.678 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/ - null null
+2026-07-24 14:44:29.682 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/ - 404 0 null 4.8285ms
+2026-07-24 14:44:29.685 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5103/, Response status code: 404
+2026-07-24 14:56:45.902 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.html - null null
+2026-07-24 14:56:45.905 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.html - 304 null null 2.6815ms
+2026-07-24 14:56:45.921 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui.css - null null
+2026-07-24 14:56:45.922 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.css - null null
+2026-07-24 14:56:45.923 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-bundle.js - null null
+2026-07-24 14:56:45.924 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui.css - 304 null null 2.4406ms
+2026-07-24 14:56:45.924 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-standalone-preset.js - null null
+2026-07-24 14:56:45.925 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.css - 304 null null 3.8415ms
+2026-07-24 14:56:45.927 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-bundle.js - 304 null null 4.3061ms
+2026-07-24 14:56:45.930 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/index.js - null null
+2026-07-24 14:56:45.932 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/swagger-ui-standalone-preset.js - 304 null null 8.2656ms
+2026-07-24 14:56:45.939 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/index.js - 304 null null 8.4316ms
+2026-07-24 14:56:46.080 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/openapi/v1.json - null null
+2026-07-24 14:56:46.082 +03:00 [INF] Executing endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 14:56:46.088 +03:00 [INF] Executed endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 14:56:46.089 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/swagger/favicon-32x32.png - null null
+2026-07-24 14:56:46.089 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/openapi/v1.json - 200 null application/json;charset=utf-8 9.1504ms
+2026-07-24 14:56:46.091 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/swagger/favicon-32x32.png - 304 null null 2.7305ms
+2026-07-24 15:13:58.861 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 15:43:59.266 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 16:13:59.601 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 16:44:00.019 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 17:14:00.404 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 17:44:00.820 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 18:14:01.176 +03:00 [ERR] Ошибка в фоновом парсере
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at C:\Users\tpido\AppData\Local\ms-playwright\chromium_headless_shell-1228\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pwsh bin/Debug/netX/playwright.ps1 install             ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 222
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 528
+   at Microsoft.Playwright.Core.BrowserType.LaunchAsync(BrowserTypeLaunchOptions options) in /_/src/Playwright/Core/BrowserType.cs:line 56
+   at NewsAggregator.Infrastructure.Services.ParserService.ParseAllSourcesAsync() in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\Services\ParserService.cs:line 89
+   at NewsAggregator.Infrastructure.BackgroundServices.NewsParserBackgroundService.ExecuteAsync(CancellationToken stoppingToken) in C:\Users\tpido\OneDrive\Рабочий стол\NewsAggregator\NewsAggregator.Infrastructure\BackgroundServices\NewsParserBackgroundService.cs:line 33
+2026-07-24 18:27:30.542 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5103/openapi/v1.json - null null
+2026-07-24 18:27:30.546 +03:00 [INF] Executing endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 18:27:30.551 +03:00 [INF] Executed endpoint 'HTTP: GET /openapi/{documentName}.json'
+2026-07-24 18:27:30.552 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5103/openapi/v1.json - 200 null application/json;charset=utf-8 9.371ms

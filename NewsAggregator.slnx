@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="NewsAggregator.Core/NewsAggregator.Core.csproj" />
+  <Project Path="NewsAggregator.Infrastructure/NewsAggregator.Infrastructure.csproj" />
+  <Project Path="NewsAggregator.WebAPI/NewsAggregator.WebAPI.csproj" />
+</Solution>
