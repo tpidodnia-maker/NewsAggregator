@@ -5,10 +5,6 @@ using NewsAggregator.Infrastructure.Data;
 
 namespace NewsAggregator.Infrastructure.Services;
 
-/// <summary>
-/// Рекомендации на основе истории просмотров пользователя.
-/// Алгоритм: берём топ-3 категории пользователя → выдаём свежие новости из них.
-/// </summary>
 public class RecommendationService : IRecommendationService
 {
     private readonly AppDbContext _db;
@@ -20,7 +16,6 @@ public class RecommendationService : IRecommendationService
 
     public async Task<List<NewsDto>> GetRecommendationsAsync(int userId, int count = 10)
     {
-        // Берём топ категории которые пользователь читал чаще всего
         var topCategories = await _db.UserReadHistories
             .Where(h => h.UserId == userId)
             .GroupBy(h => h.CategoryId)
@@ -29,7 +24,6 @@ public class RecommendationService : IRecommendationService
             .Select(g => g.Key)
             .ToListAsync();
 
-        // Если истории нет — возвращаем просто свежие новости
         if (!topCategories.Any())
         {
             return await _db.News
@@ -40,26 +34,23 @@ public class RecommendationService : IRecommendationService
                 .ToListAsync();
         }
 
-        // Новости из топ категорий, которые пользователь ещё не читал
         var readNewsIds = await _db.UserReadHistories
             .Where(h => h.UserId == userId)
             .Select(h => h.NewsId)
             .ToListAsync();
 
-        var recommended = await _db.News
+        return await _db.News
             .Include(n => n.Category)
-            .Where(n => topCategories.Contains(n.CategoryId) && !readNewsIds.Contains(n.Id))
+            .Where(n => topCategories.Contains(n.CategoryId)
+                     && !readNewsIds.Contains(n.Id))
             .OrderByDescending(n => n.PublishedDate)
             .Take(count)
             .Select(n => MapToDto(n))
             .ToListAsync();
-
-        return recommended;
     }
 
     public async Task TrackReadAsync(int userId, int newsId, int categoryId)
     {
-        // Не дублируем если уже читал
         var exists = await _db.UserReadHistories
             .AnyAsync(h => h.UserId == userId && h.NewsId == newsId);
 
@@ -70,10 +61,9 @@ public class RecommendationService : IRecommendationService
                 UserId     = userId,
                 NewsId     = newsId,
                 CategoryId = categoryId,
-                ReadAt     = DateTimeOffset.UtcNow
+                ReadAt     = DateTime.UtcNow
             });
 
-            // Увеличиваем ViewCount
             var news = await _db.News.FindAsync(newsId);
             if (news != null) news.ViewCount++;
 

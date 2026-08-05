@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react'
+import { Star } from 'lucide-react'
 import { recommendationsApi, NewsItem } from '../../api/api'
 import { NewsCard } from './NewsCard'
 
@@ -18,7 +20,10 @@ export const RecommendedNews = () => {
 
   return (
     <div className="recommended-section">
-      <h2 className="section-title">⭐ Рекомендовано для вас</h2>
+      <h2 className="section-title">
+        <Star size={18} strokeWidth={2} />
+        Рекомендовано для вас
+      </h2>
       <div className="news-grid">
         {news.map(item => (
           <NewsCard key={item.id} news={item} />

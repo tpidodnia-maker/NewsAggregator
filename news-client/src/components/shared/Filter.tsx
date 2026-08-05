@@ -1,3 +1,5 @@
+
+import { Search } from 'lucide-react'
 import { DateRangePicker } from './DateRangePicker'
 
 interface Props {
@@ -18,13 +20,16 @@ export const Filter = ({
   onSortChange, onClearDates
 }: Props) => (
   <div className="filter-bar">
-    <input
-      className="search-input"
-      type="text"
-      placeholder="🔍 Поиск новостей..."
-      value={search}
-      onChange={e => onSearchChange(e.target.value)}
-    />
+    <div className="search-input-wrap">
+      <Search size={16} strokeWidth={2} className="search-input-icon" />
+      <input
+        className="search-input"
+        type="text"
+        placeholder="Поиск новостей..."
+        value={search}
+        onChange={e => onSearchChange(e.target.value)}
+      />
+    </div>
     <DateRangePicker
       dateFrom={dateFrom}
       dateTo={dateTo}

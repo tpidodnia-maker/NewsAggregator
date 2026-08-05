@@ -1,4 +1,6 @@
+
 import { useEffect, useState, useCallback } from 'react'
+import { RefreshCw, Loader2 } from 'lucide-react'
 import { newsApi, NewsItem } from '../../api/api'
 import { NewsCard } from './NewsCard'
 import { RecommendedNews } from './RecommendedNews'
@@ -74,7 +76,9 @@ export const NewsList = () => {
               onClick={handleParse}
               disabled={parsing}
             >
-              {parsing ? '⏳ Парсинг...' : '🔄 Обновить новости'}
+              {parsing
+                ? <><Loader2 size={16} className="spin" /> Парсинг...</>
+                : <><RefreshCw size={16} /> Обновить новости</>}
             </button>
           )}
         </div>

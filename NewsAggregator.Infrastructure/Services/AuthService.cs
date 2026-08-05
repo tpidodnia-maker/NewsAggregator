@@ -27,15 +27,12 @@ public class AuthService : IAuthService
 
     public async Task<(AuthResponseDto? Result, string? Error)> RegisterAsync(RegisterDto dto)
     {
-        // Проверка уникальности email
         if (await _db.Users.AnyAsync(u => u.Email == dto.Email))
             return (null, "Email уже используется");
 
-        // Проверка уникальности username
         if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
             return (null, "Имя пользователя уже занято");
 
-        // Проверяем — есть ли уже Admin в системе
         var adminExists = await _db.Users.AnyAsync(u => u.Role == "Admin");
 
         var user = new User
@@ -43,9 +40,8 @@ public class AuthService : IAuthService
             Username     = dto.Username,
             Email        = dto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            // Первый зарегистрированный — Admin, остальные — User
             Role         = adminExists ? "User" : "Admin",
-            CreatedAt    = DateTimeOffset.UtcNow
+            CreatedAt    = DateTime.UtcNow
         };
 
         _db.Users.Add(user);
@@ -67,9 +63,8 @@ public class AuthService : IAuthService
     public async Task<bool> ForgotPasswordAsync(string email)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user == null) return false; // Не сообщаем что email не найден (безопасность)
+        if (user == null) return true;
 
-        // Удаляем старые токены
         var oldTokens = _db.PasswordResetTokens.Where(t => t.UserId == user.Id);
         _db.PasswordResetTokens.RemoveRange(oldTokens);
 
@@ -77,15 +72,18 @@ public class AuthService : IAuthService
         {
             UserId    = user.Id,
             Token     = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1)
+            ExpiresAt = DateTime.UtcNow.AddHours(1)
         };
 
         _db.PasswordResetTokens.Add(token);
         await _db.SaveChangesAsync();
 
-        // Отправляем письмо
-        var resetLink = $"{_config["AppUrl"]}/reset-password?token={Uri.EscapeDataString(token.Token)}";
-        await _email.SendPasswordResetAsync(user.Email, user.Username, resetLink);
+        try
+        {
+            var resetLink = $"{_config["AppUrl"]}/reset-password?token={Uri.EscapeDataString(token.Token)}";
+            await _email.SendPasswordResetAsync(user.Email, user.Username, resetLink);
+        }
+        catch { /* email не настроен — не критично */ }
 
         return true;
     }
@@ -97,21 +95,21 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(t =>
                 t.Token == dto.Token &&
                 !t.IsUsed &&
-                t.ExpiresAt > DateTimeOffset.UtcNow);
+                t.ExpiresAt > DateTime.UtcNow);
 
         if (tokenRecord == null) return false;
 
         tokenRecord.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         tokenRecord.IsUsed = true;
         await _db.SaveChangesAsync();
-
         return true;
     }
+
     public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u =>
             u.RefreshToken == refreshToken &&
-            u.RefreshTokenExpiry > DateTimeOffset.UtcNow);
+            u.RefreshTokenExpiry > DateTime.UtcNow);
 
         if (user == null) return null;
         return await GenerateTokensAsync(user);
@@ -138,7 +136,7 @@ public class AuthService : IAuthService
         var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
         user.RefreshToken       = refreshToken;
-        user.RefreshTokenExpiry = DateTimeOffset.UtcNow.AddDays(7);
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
         await _db.SaveChangesAsync();
 
         return new AuthResponseDto

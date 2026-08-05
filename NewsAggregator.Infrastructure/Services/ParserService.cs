@@ -1,9 +1,9 @@
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using NewsAggregator.Core.Entities;
 using NewsAggregator.Core.Interfaces;
-using System.Globalization;
 
 namespace NewsAggregator.Infrastructure.Services;
 
@@ -17,43 +17,38 @@ public class ParserService : IParserService
     {
         new SiteConfig
         {
-            Name            = "BBC News",
-            Url             = "https://www.bbc.com/news",
-            ArticleSelector = "h3[class*='title'] a, .gs-c-promo-heading a",
-            DateSelector    = "time",
-            BaseUrl         = "https://www.bbc.com"
+            Name            = "РБК",
+            Url             = "https://www.rbc.ru/",
+            ArticleSelector = "a.item__link, a.search-result__item-title",
+            BaseUrl         = "https://www.rbc.ru"
         },
         new SiteConfig
         {
-            Name            = "CNN",
-            Url             = "https://edition.cnn.com",
-            ArticleSelector = ".containerheadline a, .cdheadline a",
-            DateSelector    = ".timestamp",
-            BaseUrl         = "https://edition.cnn.com"
+            Name            = "Lenta.ru",
+            Url             = "https://lenta.ru/",
+            ArticleSelector = "a.card-full-other, a.topic-card__link, a[href*='/news/']",
+            BaseUrl         = "https://lenta.ru"
         },
         new SiteConfig
         {
-            Name            = "Reuters",
-            Url             = "https://www.reuters.com",
-            ArticleSelector = "a[data-testid='Heading']",
-            DateSelector    = "time",
-            BaseUrl         = "https://www.reuters.com"
+            Name            = "RT на русском",
+            Url             = "https://russian.rt.com/",
+            ArticleSelector = "a.link.card__heading, a[class*='card__heading']",
+            BaseUrl         = "https://russian.rt.com"
         },
         new SiteConfig
         {
-            Name            = "The Guardian",
-            Url             = "https://www.theguardian.com/international",
-            ArticleSelector = ".fc-item__title a",
-            DateSelector    = "time",
-            BaseUrl         = "https://www.theguardian.com"
+            Name            = "Известия",
+            Url             = "https://iz.ru/",
+            ArticleSelector = "a.node__cart__item__inside__info, a[href*='/news/']",
+            BaseUrl         = "https://iz.ru"
         },
         new SiteConfig
         {
-            Name            = "Al Jazeera",
-            Url             = "https://www.aljazeera.com",
-            ArticleSelector = ".article-card__title a",
-            DateSelector    = "time",
-            BaseUrl         = "https://www.aljazeera.com"
+            Name            = "ТАСС",
+            Url             = "https://tass.ru/",
+            ArticleSelector = "a[href*='/politika/'], a[href*='/ekonomika/'], a[href*='/sport/'], a[href*='/nauka/']",
+            BaseUrl         = "https://tass.ru"
         }
     };
 
@@ -69,32 +64,27 @@ public class ParserService : IParserService
 
     public async Task<List<News>> ParseAllSourcesAsync()
     {
-        var allNews      = new List<News>();
-        var proxyEnabled = _config.GetValue<bool>("ProxySettings:Enabled");
-        var proxyServer  = _config.GetValue<string>("ProxySettings:Server");
-        var proxyUser    = _config.GetValue<string>("ProxySettings:Username");
-        var proxyPass    = _config.GetValue<string>("ProxySettings:Password");
+        var allNews = new List<News>();
 
         using var playwright = await Playwright.CreateAsync();
-        var launchOptions    = new BrowserTypeLaunchOptions
+
+        var launchOptions = new BrowserTypeLaunchOptions
         {
             Headless = true,
-            Args     = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
+            Args     = new[] { "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled" }
         };
 
-        Proxy? proxy = null;
-        if (proxyEnabled && !string.IsNullOrEmpty(proxyServer))
-            proxy = new Proxy { Server = proxyServer, Username = proxyUser, Password = proxyPass };
-
         await using var browser = await playwright.Chromium.LaunchAsync(launchOptions);
-        var contextOptions      = new BrowserNewContextOptions
+
+        var contextOptions = new BrowserNewContextOptions
         {
-            UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            Proxy     = proxy
+            UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Locale    = "ru-RU"
         };
 
         await using var context = await browser.NewContextAsync(contextOptions);
-        var page                = await context.NewPageAsync();
+        var page = await context.NewPageAsync();
+
         foreach (var site in Sites)
         {
             try
@@ -115,32 +105,38 @@ public class ParserService : IParserService
 
     private async Task<List<News>> ParseSiteAsync(IPage page, SiteConfig site)
     {
-        var result = new List<News>();
-
-        await page.GotoAsync(site.Url, new PageGotoOptions
-        {
-            Timeout   = 30000,
-            WaitUntil = WaitUntilState.DOMContentLoaded
-        });
+        var result   = new List<News>();
+        var seenUrls = new HashSet<string>();
 
         try
         {
-            await page.WaitForSelectorAsync(site.ArticleSelector,
-                new PageWaitForSelectorOptions { Timeout = 10000 });
+            await page.GotoAsync(site.Url, new PageGotoOptions
+            {
+                Timeout   = 30000,
+                WaitUntil = WaitUntilState.DOMContentLoaded
+            });
+            await Task.Delay(2000);
+            await page.EvaluateAsync("window.scrollTo(0, 800)");
+            await Task.Delay(1000);
         }
-        catch { /* продолжаем даже если селектор не найден */ }
-
-        await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight / 2)");
-        await Task.Delay(1000);
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Не удалось загрузить {Site}: {Error}", site.Name, ex.Message);
+            return result;
+        }
 
         var links = await page.QuerySelectorAllAsync(site.ArticleSelector);
+        _logger.LogInformation("Найдено {Count} ссылок на {Site}", links.Count, site.Name);
 
-        foreach (var link in links.Take(15))
+        foreach (var link in links.Take(25))
         {
             try
             {
-                var href  = await link.GetAttributeAsync("href");
-                var title = (await link.InnerTextAsync()).Trim();
+                var href  = await link.GetAttributeAsync("href") ?? "";
+                var rawTitle = (await link.InnerTextAsync()).Trim();
+                var title = System.Text.RegularExpressions.Regex
+                .Replace(rawTitle, @"\s+\d{1,2}:\d{2}$", "")
+                .Trim();
 
                 if (string.IsNullOrWhiteSpace(href) || title.Length < 10) continue;
 
@@ -148,32 +144,72 @@ public class ParserService : IParserService
                     ? href
                     : site.BaseUrl + (href.StartsWith("/") ? href : "/" + href);
 
-                var categoryName = _classifier.Classify(title);
+                var cleanUrl = fullUrl.Split('?')[0].TrimEnd('/');
 
-                var news = new News
+                if (seenUrls.Contains(cleanUrl)) continue;
+                seenUrls.Add(cleanUrl);
+
+                var categoryName = _classifier.Classify(title);
+                var imageUrl     = await ExtractImageUrlAsync(link, site.BaseUrl);
+
+                result.Add(new News
                 {
-                    Title         = title,
-                    Url           = fullUrl,
+                    Title         = title.Length > 300 ? title[..300] : title,
+                    Url           = cleanUrl,
                     Source        = site.Name,
                     Content       = title.Length > 200 ? title[..200] : title,
-                    PublishedDate = DateTimeOffset.UtcNow,
-                    CreatedAt     = DateTimeOffset.UtcNow,
-                    CategoryId    = ResolveCategoryId(categoryName)
-                };
-
-                result.Add(news);
-                await Task.Delay(Random.Shared.Next(1000, 2000));
+                    PublishedDate = DateTime.UtcNow,
+                    CreatedAt     = DateTime.UtcNow,
+                    CategoryId    = ResolveCategoryId(categoryName),
+                    ImageUrl      = imageUrl
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Ошибка обработки ссылки на {Site}", site.Name);
+                _logger.LogDebug("Ошибка ссылки: {Error}", ex.Message);
             }
         }
 
+        _logger.LogInformation("Собрано {Count} новостей с {Site}", result.Count, site.Name);
         return result;
     }
 
-    private static int ResolveCategoryId(string categoryName) => categoryName switch
+    /// <summary>
+    /// Пытается найти превью-картинку рядом со ссылкой на статью прямо на странице листинга
+    /// (без захода на саму статью — это было бы слишком дорого по времени).
+    /// Ищет &lt;img&gt; внутри самой ссылки, затем — в ближайшем родительском блоке карточки.
+    /// Возвращает null, если картинки нет — тогда фронтенд покажет плейсхолдер.
+    /// </summary>
+    private static async Task<string?> ExtractImageUrlAsync(IElementHandle link, string baseUrl)
+    {
+        try
+        {
+            var img = await link.QuerySelectorAsync("img");
+
+            if (img == null)
+            {
+                var parent = await link.EvaluateHandleAsync(
+                    "el => el.closest('article, li, div')") as IElementHandle;
+                if (parent != null)
+                    img = await parent.QuerySelectorAsync("img");
+            }
+
+            if (img == null) return null;
+
+            var src = await img.GetAttributeAsync("data-src")
+                      ?? await img.GetAttributeAsync("src");
+
+            if (string.IsNullOrWhiteSpace(src) || src.StartsWith("data:")) return null;
+
+            return src.StartsWith("http") ? src : baseUrl + (src.StartsWith("/") ? src : "/" + src);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static int ResolveCategoryId(string name) => name switch
     {
         "Политика"    => 1,
         "Экономика"   => 2,
@@ -193,7 +229,6 @@ public class ParserService : IParserService
         public string Name            { get; init; } = string.Empty;
         public string Url             { get; init; } = string.Empty;
         public string ArticleSelector { get; init; } = string.Empty;
-        public string DateSelector    { get; init; } = string.Empty;
         public string BaseUrl         { get; init; } = string.Empty;
     }
 }

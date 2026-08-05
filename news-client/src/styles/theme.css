@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap');
+
+/*
+  Палитра под серьёзный новостной портал: тёплая "бумага" в светлой теме,
+  графит в тёмной, один сдержанный акцент "press" (приглушённый кирпично-красный,
+  как типографская печать) — без градиентов и неона.
+*/
+
+:root {
+  --ink: #182233;
+  --paper: #f7f4ee;
+  --paper-raised: #ffffff;
+  --press: #8c3324;
+  --slate: #5b6472;
+  --line: rgba(24, 34, 51, 0.12);
+
+  --bg: var(--paper);
+  --surface: var(--paper-raised);
+  --text: var(--ink);
+  --text-muted: var(--slate);
+  --border: var(--line);
+  --accent: var(--press);
+
+  --font-display: 'Lora', 'Georgia', serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+[data-theme='dark'] {
+  --ink: #edeae2;
+  --paper: #14181f;
+  --paper-raised: #1b2029;
+  --press: #d97b64;
+  --slate: #9aa2ad;
+  --line: rgba(237, 234, 226, 0.1);
+
+  --bg: var(--paper);
+  --surface: var(--paper-raised);
+  --text: var(--ink);
+  --text-muted: var(--slate);
+  --border: var(--line);
+  --accent: var(--press);
+}
+
+/* ── Базовые переопределения поверх App.css ──────────────────────────────── */
+
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: var(--font-body) !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+.navbar,
+.sidebar,
+.calendar-widget,
+.currency-widget {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.navbar__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text) !important;
+}
+
+.navbar__user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.category-item__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-tz,
+.date-range-label,
+.widget-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.search-input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 32px !important;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

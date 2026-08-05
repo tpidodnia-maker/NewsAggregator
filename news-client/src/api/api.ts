@@ -1,3 +1,4 @@
+
 import axios from 'axios'
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
@@ -53,6 +54,7 @@ export interface NewsItem {
   categoryIcon: string
   categoryId: number
   viewCount: number
+  imageUrl?: string
 }
 
 export interface NewsDetail extends NewsItem {

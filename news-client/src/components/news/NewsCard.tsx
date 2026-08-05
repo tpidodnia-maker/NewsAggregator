@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { Eye, ImageOff } from 'lucide-react'
 import { NewsItem, recommendationsApi } from '../../api/api'
+import { getCategoryIcon } from '../../lib/categoryIcons'
 
 interface Props {
   news: NewsItem
@@ -12,6 +14,8 @@ export const NewsCard = ({ news }: Props) => {
     year: 'numeric'
   })
 
+  const CategoryIcon = getCategoryIcon(news.categoryName)
+
   const handleClick = () => {
     const token = localStorage.getItem('accessToken')
     if (token) {
@@ -21,9 +25,20 @@ export const NewsCard = ({ news }: Props) => {
 
   return (
     <div className="news-card">
+      <Link to={'/news/' + news.id} onClick={handleClick} className="news-card__media">
+        {news.imageUrl ? (
+          <img src={news.imageUrl} alt="" loading="lazy" className="news-card__image" />
+        ) : (
+          <div className="news-card__image news-card__image--placeholder">
+            <ImageOff size={22} strokeWidth={1.5} />
+          </div>
+        )}
+      </Link>
+
       <div className="news-card__header">
         <span className="news-card__category">
-          {news.categoryIcon} {news.categoryName}
+          <CategoryIcon size={14} strokeWidth={2} />
+          {news.categoryName}
         </span>
         <span className="news-card__source">{news.source}</span>
       </div>
@@ -38,7 +53,10 @@ export const NewsCard = ({ news }: Props) => {
       </p>
       <div className="news-card__footer">
         <span className="news-card__date">{date}</span>
-        <span className="news-card__views">👁 {news.viewCount}</span>
+        <span className="news-card__views">
+          <Eye size={14} strokeWidth={2} />
+          {news.viewCount}
+        </span>
         <a
           href={news.url}
           target="_blank"

@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from 'react'
 import { categoriesApi, Category } from '../../api/api'
 import { CurrencyWidget } from '../shared/CurrencyWidget'
 import { CalendarWidget } from '../shared/CalendarWidget'
+import { getCategoryIcon } from '../../lib/categoryIcons'
 
 interface Props {
   selectedCategoryId?: number
@@ -28,16 +30,22 @@ export const Sidebar = ({ selectedCategoryId, onCategoryChange }: Props) => {
           >
             Все новости
           </li>
-          {categories.map(cat => (
-            <li
-              key={cat.id}
-              className={'category-item' + (selectedCategoryId === cat.id ? ' active' : '')}
-              onClick={() => onCategoryChange(cat.id)}
-            >
-              <span>{cat.icon} {cat.name}</span>
-              <span className="category-count">{cat.newsCount}</span>
-            </li>
-          ))}
+          {categories.map(cat => {
+            const Icon = getCategoryIcon(cat.name)
+            return (
+              <li
+                key={cat.id}
+                className={'category-item' + (selectedCategoryId === cat.id ? ' active' : '')}
+                onClick={() => onCategoryChange(cat.id)}
+              >
+                <span className="category-item__label">
+                  <Icon size={15} strokeWidth={2} />
+                  {cat.name}
+                </span>
+                <span className="category-count">{cat.newsCount}</span>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </aside>

@@ -1,6 +1,5 @@
 namespace NewsAggregator.Core.Entities;
 
-/// <summary>История прочитанных новостей — основа для рекомендаций</summary>
 public class UserReadHistory
 {
     public int Id { get; set; }
@@ -9,5 +8,5 @@ public class UserReadHistory
     public int NewsId { get; set; }
     public News News { get; set; } = null!;
     public int CategoryId { get; set; }
-    public DateTimeOffset ReadAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime ReadAt { get; set; } = DateTime.UtcNow;
 }

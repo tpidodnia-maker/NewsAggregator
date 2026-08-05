@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react'
+import { Coins } from 'lucide-react'
 import { currencyApi, CurrencyRate } from '../../api/api'
 
 export const CurrencyWidget = () => {
@@ -15,7 +17,10 @@ export const CurrencyWidget = () => {
 
   return (
     <div className="currency-widget">
-      <h3 className="widget-title">💱 Курс валют</h3>
+      <h3 className="widget-title">
+        <Coins size={15} strokeWidth={2} />
+        Курс валют
+      </h3>
       <div className="currency-list">
         {rates.map(rate => (
           <div key={rate.code} className="currency-item">

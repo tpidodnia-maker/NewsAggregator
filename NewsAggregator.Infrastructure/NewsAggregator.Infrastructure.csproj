@@ -1,39 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
-<ItemGroup>
-  <!-- Entity Framework Core -->
-  <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
-  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.10" />
-  
-  <!-- ASP.NET Core абстракции (BackgroundService, IMemoryCache, ILogger, IConfiguration) -->
-  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-*" />
-  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.10" />
-  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-*" />
-  
-  <!-- JWT / Identity -->
-  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*" />
-  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
-  
-  <!-- Email -->
-  <PackageReference Include="MailKit" Version="4.*" />
-  
-  <!-- Playwright для парсинга -->
-  <PackageReference Include="Microsoft.Playwright" Version="1.*" />
-</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.40.0" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NewsAggregator.Core\NewsAggregator.Core.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
 </Project>

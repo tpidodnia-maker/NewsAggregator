@@ -1,40 +1,59 @@
+
 import { useState, useEffect } from 'react'
+import { Globe } from 'lucide-react'
 
 export const CalendarWidget = () => {
-  const [now, setNow]           = useState(new Date())
-  const [timezone, setTimezone] = useState('')
+  const [now, setNow] = useState(new Date())
+  const [timezone, setTimezone] = useState('UTC')
 
   useEffect(() => {
-    // Определяем часовой пояс пользователя
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    setTimezone(tz)
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      if (tz) setTimezone(tz)
+    } catch {
+      setTimezone('UTC')
+    }
 
-    // Обновляем время каждую секунду
     const timer = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: timezone,
-    weekday: 'long', year: 'numeric',
-    month: 'long', day: 'numeric'
-  }
+  const dateStr = (() => {
+    try {
+      return now.toLocaleDateString('ru-RU', {
+        timeZone: timezone,
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } catch {
+      return now.toLocaleDateString('ru-RU')
+    }
+  })()
 
-  const timeOptions: Intl.DateTimeFormatOptions = {
-    timeZone: timezone,
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  }
+  const timeStr = (() => {
+    try {
+      return now.toLocaleTimeString('ru-RU', {
+        timeZone: timezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    } catch {
+      return now.toLocaleTimeString('ru-RU')
+    }
+  })()
 
   return (
     <div className="calendar-widget">
-      <h3 className="widget-title">📅 Дата и время</h3>
-      <div className="calendar-date">
-        {now.toLocaleDateString('ru-RU', options)}
+      <div className="widget-title">Дата и время</div>
+      <div className="calendar-date">{dateStr}</div>
+      <div className="calendar-time">{timeStr}</div>
+      <div className="calendar-tz">
+        <Globe size={14} strokeWidth={2} />
+        {timezone}
       </div>
-      <div className="calendar-time">
-        {now.toLocaleTimeString('ru-RU', timeOptions)}
-      </div>
-      <div className="calendar-tz">🌍 {timezone}</div>
     </div>
   )
 }

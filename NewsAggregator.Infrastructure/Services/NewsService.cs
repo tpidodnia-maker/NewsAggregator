@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -16,8 +17,8 @@ public class NewsService : INewsService
 
     public NewsService(AppDbContext db, IMemoryCache cache, ILogger<NewsService> logger)
     {
-        _db     = db;
-        _cache  = cache;
+        _db    = db;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -60,7 +61,8 @@ public class NewsService : INewsService
                 CategoryName = n.Category.Name,
                 CategoryIcon = n.Category.Icon,
                 CategoryId   = n.CategoryId,
-                ViewCount    = n.ViewCount
+                ViewCount    = n.ViewCount,
+                ImageUrl     = n.ImageUrl
             })
             .ToListAsync();
 
@@ -75,8 +77,10 @@ public class NewsService : INewsService
 
     public async Task<NewsDetailDto?> GetNewsByIdAsync(int id)
     {
-        var n = await _db.News.Include(n => n.Category)
+        var n = await _db.News
+            .Include(n => n.Category)
             .FirstOrDefaultAsync(n => n.Id == id);
+
         if (n == null) return null;
 
         return new NewsDetailDto
@@ -92,7 +96,8 @@ public class NewsService : INewsService
             CategoryIcon = n.Category.Icon,
             CategoryId   = n.CategoryId,
             ViewCount    = n.ViewCount,
-            CreatedAt    = n.CreatedAt
+            CreatedAt    = n.CreatedAt,
+            ImageUrl     = n.ImageUrl
         };
     }
 
