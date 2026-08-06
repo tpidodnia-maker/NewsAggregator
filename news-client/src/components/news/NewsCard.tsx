@@ -1,33 +1,36 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, ImageOff } from 'lucide-react'
-import { NewsItem, recommendationsApi } from '../../api/api'
+import { NewsItem, recommendationsApi, getImageUrl } from '../../api/api'
 import { getCategoryIcon } from '../../lib/categoryIcons'
 
-interface Props {
-  news: NewsItem
-}
+interface Props { news: NewsItem }
 
 export const NewsCard = ({ news }: Props) => {
-  const date = new Date(news.publishedDate).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  })
+  const [imgError, setImgError] = useState(false)
+  const src = getImageUrl(news.imageUrl)
 
+  const date = new Date(news.publishedDate).toLocaleDateString('ru-RU', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  })
   const CategoryIcon = getCategoryIcon(news.categoryName)
 
   const handleClick = () => {
     const token = localStorage.getItem('accessToken')
-    if (token) {
-      recommendationsApi.track(news.id, news.categoryId).catch(() => {})
-    }
+    if (token) recommendationsApi.track(news.id, news.categoryId).catch(() => {})
   }
 
   return (
     <div className="news-card">
       <Link to={'/news/' + news.id} onClick={handleClick} className="news-card__media">
-        {news.imageUrl ? (
-          <img src={news.imageUrl} alt="" loading="lazy" className="news-card__image" />
+        {src && !imgError ? (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            className="news-card__image"
+            onError={() => setImgError(true)}
+          />
         ) : (
           <div className="news-card__image news-card__image--placeholder">
             <ImageOff size={22} strokeWidth={1.5} />

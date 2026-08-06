@@ -3,6 +3,9 @@ import axios from 'axios'
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
 
+export const getImageUrl = (url?: string) =>
+  url ? `${BASE_URL}/api/imageproxy?url=${encodeURIComponent(url)}` : undefined
+
 export const api = axios.create({
   baseURL: BASE_URL + '/api',
   headers: { 'Content-Type': 'application/json' }

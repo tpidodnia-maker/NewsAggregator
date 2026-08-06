@@ -26,7 +26,7 @@ public class ParserService : IParserService
         {
             Name            = "Lenta.ru",
             Url             = "https://lenta.ru/",
-            ArticleSelector = "a.card-full-other, a.topic-card__link, a[href*='/news/']",
+            ArticleSelector = "a.card-full-other, a.topic-card__link",
             BaseUrl         = "https://lenta.ru"
         },
         new SiteConfig
@@ -171,6 +171,26 @@ public class ParserService : IParserService
         }
 
         _logger.LogInformation("Собрано {Count} новостей с {Site}", result.Count, site.Name);
+
+        // Пытаемся заменить thumbnail на полноразмерное og:image со страницы статьи
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
+        using var semaphore = new SemaphoreSlim(5);
+        var tasks = result.Select(async item =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                var ogImage = await FetchOgImageAsync(http, item.Url);
+                if (!string.IsNullOrWhiteSpace(ogImage))
+                    item.ImageUrl = ogImage;
+            }
+            finally { semaphore.Release(); }
+        });
+        await Task.WhenAll(tasks);
+
         return result;
     }
 
@@ -209,20 +229,41 @@ public class ParserService : IParserService
         }
     }
 
-    private static int ResolveCategoryId(string name) => name switch
+    private static readonly System.Text.RegularExpressions.Regex OgImageRegex =
+    new(@"<meta[^>]+property=[""']og:image[""'][^>]+content=[""']([^""']+)[""']",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+private static async Task<string?> FetchOgImageAsync(HttpClient http, string articleUrl)
+{
+    try
     {
-        "Политика"    => 1,
-        "Экономика"   => 2,
-        "Спорт"       => 3,
-        "Технологии"  => 4,
-        "Наука"       => 5,
-        "Культура"    => 6,
-        "Здоровье"    => 7,
-        "Бизнес"      => 8,
-        "Экология"    => 9,
-        "Развлечения" => 10,
-        _             => 13
-    };
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+        var html = await http.GetStringAsync(articleUrl, cts.Token);
+        var match = OgImageRegex.Match(html);
+        return match.Success ? match.Groups[1].Value : null;
+    }
+    catch
+    {
+        return null; // не страшно — останется thumbnail-фолбэк
+    }
+}
+
+    private static int ResolveCategoryId(string name) => name switch
+{
+    "Политика"     => 1,
+    "Экономика"    => 2,
+    "Спорт"        => 3,
+    "Технологии"   => 4,
+    "Наука"        => 5,
+    "Культура"     => 6,
+    "Здоровье"     => 7,
+    "Бизнес"       => 8,
+    "Экология"     => 9,
+    "Развлечения"  => 10,
+    "Образование"  => 11,   // ← добавили
+    "Путешествия"  => 12,   // ← добавили
+    _              => 13
+};
 
     private record SiteConfig
     {

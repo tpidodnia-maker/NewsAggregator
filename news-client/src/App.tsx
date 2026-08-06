@@ -10,6 +10,7 @@ import { ForgotPassword } from './components/auth/ForgotPassword'
 import { ResetPassword }  from './components/auth/ResetPassword'
 import { PrivateRoute }   from './components/shared/PrivateRoute'
 import { Navbar }         from './components/layout/Navbar'
+import { CursorEffect }   from './components/shared/CursorEffect'   // ← добавили
 import './App.css'
 import './styles/theme.css'
 import './styles/news-card.css'
@@ -18,6 +19,7 @@ const App = () => (
   <ThemeProvider>
     <AuthProvider>
       <BrowserRouter>
+        <CursorEffect />   {/* ← добавили: рендерим глобально, вне зависимости от роута */}
         <Navbar />
         <div className="app-layout">
           <Routes>

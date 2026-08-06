@@ -102,16 +102,26 @@ public class NewsService : INewsService
     }
 
     public async Task<int> SaveNewsAsync(IEnumerable<News> newsList)
+{
+    int saved = 0, updated = 0;
+    foreach (var news in newsList)
     {
-        int saved = 0;
-        foreach (var news in newsList)
+        var existing = await _db.News.FirstOrDefaultAsync(n => n.Url == news.Url);
+        if (existing != null)
         {
-            if (await _db.News.AnyAsync(n => n.Url == news.Url)) continue;
-            _db.News.Add(news);
-            saved++;
+            // Дополняем уже существующую запись, если раньше не удалось найти картинку
+            if (string.IsNullOrWhiteSpace(existing.ImageUrl) && !string.IsNullOrWhiteSpace(news.ImageUrl))
+            {
+                existing.ImageUrl = news.ImageUrl;
+                updated++;
+            }
+            continue;
         }
-        await _db.SaveChangesAsync();
-        _logger.LogInformation("Сохранено {Count} новостей", saved);
-        return saved;
+        _db.News.Add(news);
+        saved++;
     }
+    await _db.SaveChangesAsync();
+    _logger.LogInformation("Сохранено {Saved} новых, дополнено {Updated} существующих", saved, updated);
+    return saved;
+}
 }
