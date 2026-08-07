@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { Coins } from 'lucide-react'
 import { currencyApi, CurrencyRate } from '../../api/api'

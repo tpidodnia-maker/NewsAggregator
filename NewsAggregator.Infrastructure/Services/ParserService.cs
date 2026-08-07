@@ -1,4 +1,3 @@
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
@@ -128,6 +127,32 @@ public class ParserService : IParserService
         var links = await page.QuerySelectorAllAsync(site.ArticleSelector);
         _logger.LogInformation("Найдено {Count} ссылок на {Site}", links.Count, site.Name);
 
+        if (links.Count == 0)
+        {
+            try
+            {
+                var debugDir = Path.Combine(AppContext.BaseDirectory, "parse-debug");
+                Directory.CreateDirectory(debugDir);
+                var safeSiteName = site.Name.Replace(" ", "_").Replace(".", "_");
+                var pageTitle = await page.TitleAsync();
+                var html = await page.ContentAsync();
+                await File.WriteAllTextAsync(Path.Combine(debugDir, $"{safeSiteName}.html"), html);
+                await page.ScreenshotAsync(new PageScreenshotOptions
+                {
+                    Path = Path.Combine(debugDir, $"{safeSiteName}.png"),
+                    FullPage = false
+                });
+                _logger.LogWarning(
+                    "ДИАГНОСТИКА {Site}: заголовок страницы = \"{Title}\", длина HTML = {Len} символов. " +
+                    "Скриншот и HTML сохранены в {Dir}",
+                    site.Name, pageTitle, html.Length, debugDir);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Не удалось сохранить диагностику для {Site}", site.Name);
+            }
+        }
+
         foreach (var link in links.Take(25))
         {
             try
@@ -172,13 +197,14 @@ public class ParserService : IParserService
 
         _logger.LogInformation("Собрано {Count} новостей с {Site}", result.Count, site.Name);
 
-        // Пытаемся заменить thumbnail на полноразмерное og:image со страницы статьи
+        // Пытаемся заменить thumbnail-картинку с листинга на полноразмерное og:image
+        // со страницы самой статьи — лёгкие HTTP-запросы, без headless-браузера.
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
         http.DefaultRequestHeaders.UserAgent.ParseAdd(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
         using var semaphore = new SemaphoreSlim(5);
-        var tasks = result.Select(async item =>
+        var enrichTasks = result.Select(async item =>
         {
             await semaphore.WaitAsync();
             try
@@ -189,9 +215,28 @@ public class ParserService : IParserService
             }
             finally { semaphore.Release(); }
         });
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(enrichTasks);
 
         return result;
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex OgImageRegex =
+        new(@"<meta[^>]+property=[""']og:image[""'][^>]+content=[""']([^""']+)[""']",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    private static async Task<string?> FetchOgImageAsync(HttpClient http, string articleUrl)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+            var html = await http.GetStringAsync(articleUrl, cts.Token);
+            var match = OgImageRegex.Match(html);
+            return match.Success ? match.Groups[1].Value : null;
+        }
+        catch
+        {
+            return null; // не страшно — останется thumbnail с листинга
+        }
     }
 
     /// <summary>
@@ -229,41 +274,22 @@ public class ParserService : IParserService
         }
     }
 
-    private static readonly System.Text.RegularExpressions.Regex OgImageRegex =
-    new(@"<meta[^>]+property=[""']og:image[""'][^>]+content=[""']([^""']+)[""']",
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-private static async Task<string?> FetchOgImageAsync(HttpClient http, string articleUrl)
-{
-    try
-    {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-        var html = await http.GetStringAsync(articleUrl, cts.Token);
-        var match = OgImageRegex.Match(html);
-        return match.Success ? match.Groups[1].Value : null;
-    }
-    catch
-    {
-        return null; // не страшно — останется thumbnail-фолбэк
-    }
-}
-
     private static int ResolveCategoryId(string name) => name switch
-{
-    "Политика"     => 1,
-    "Экономика"    => 2,
-    "Спорт"        => 3,
-    "Технологии"   => 4,
-    "Наука"        => 5,
-    "Культура"     => 6,
-    "Здоровье"     => 7,
-    "Бизнес"       => 8,
-    "Экология"     => 9,
-    "Развлечения"  => 10,
-    "Образование"  => 11,   // ← добавили
-    "Путешествия"  => 12,   // ← добавили
-    _              => 13
-};
+    {
+        "Политика"     => 1,
+        "Экономика"    => 2,
+        "Спорт"        => 3,
+        "Технологии"   => 4,
+        "Наука"        => 5,
+        "Культура"     => 6,
+        "Здоровье"     => 7,
+        "Бизнес"       => 8,
+        "Экология"     => 9,
+        "Развлечения"  => 10,
+        "Образование"  => 11,
+        "Путешествия"  => 12,
+        _              => 13
+    };
 
     private record SiteConfig
     {

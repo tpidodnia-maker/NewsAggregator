@@ -1,4 +1,3 @@
-
 import { Calendar, X } from 'lucide-react'
 
 interface Props {

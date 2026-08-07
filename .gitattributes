@@ -1,0 +1,36 @@
+* text=auto
+
+# Source code
+*.cs      text
+*.ts      text
+*.tsx     text
+*.js      text
+*.jsx     text
+*.css     text
+*.html    text
+*.json    text
+*.md      text
+*.csproj  text
+*.slnx    text
+*.props   text
+*.targets text
+*.http    text
+*.ps1     text
+
+# Config
+*.config  text
+*.env     text
+*.txt     text
+
+# Binaries - don't touch
+*.db      binary
+*.db-shm  binary
+*.db-wal  binary
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.exe     binary
+*.dll     binary
+*.pdb     binary

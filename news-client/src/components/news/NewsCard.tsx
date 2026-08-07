@@ -4,20 +4,29 @@ import { Eye, ImageOff } from 'lucide-react'
 import { NewsItem, recommendationsApi, getImageUrl } from '../../api/api'
 import { getCategoryIcon } from '../../lib/categoryIcons'
 
-interface Props { news: NewsItem }
+interface Props {
+  news: NewsItem
+}
 
 export const NewsCard = ({ news }: Props) => {
   const [imgError, setImgError] = useState(false)
   const src = getImageUrl(news.imageUrl)
 
   const date = new Date(news.publishedDate).toLocaleDateString('ru-RU', {
-    day: '2-digit', month: 'long', year: 'numeric'
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
   })
+
   const CategoryIcon = getCategoryIcon(news.categoryName)
 
   const handleClick = () => {
     const token = localStorage.getItem('accessToken')
-    if (token) recommendationsApi.track(news.id, news.categoryId).catch(() => {})
+    if (token) {
+      recommendationsApi.track(news.id, news.categoryId)
+        .then(() => window.dispatchEvent(new Event('newsagg:read-tracked')))
+        .catch(() => {})
+    }
   }
 
   return (

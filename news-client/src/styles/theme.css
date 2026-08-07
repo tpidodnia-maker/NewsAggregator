@@ -59,7 +59,6 @@ h1, h2, h3 {
 
 .navbar,
 .sidebar,
-.calendar-widget,
 .currency-widget {
   background: var(--surface) !important;
   border-color: var(--border) !important;

@@ -23,24 +23,44 @@
   --side:     268px;
 }
 
-/* ── Светлая тема: переопределяем те же переменные ────────────────────────── */
+/* ── Светлая тема: единая палитра на одном акцентном оттенке ─────────────── */
 [data-theme='light'] {
-  --p:        #6a55c9;
-  --p2:       #8a72e0;
-  --p3:       #5a48e0;
-  --acc:      #a8710f;
-  --acc2:     #b23a5e;
-  --ok:       #1a9c6d;
-  --bg:       #f7f4ee;
+  --p:        #4f46e5;
+  --p2:       #4338ca;
+  --p3:       #4338ca;
+  --acc:      #9a6b12;
+  --acc2:     #be123c;
+  --ok:       #15803d;
+  --bg:       #f8f8fb;
   --bg2:      #ffffff;
-  --bg3:      #f0ece3;
-  --glass:    rgba(24,34,51,0.035);
-  --glass2:   rgba(24,34,51,0.065);
-  --line:     rgba(24,34,51,0.12);
-  --line2:    rgba(106,85,201,0.28);
-  --tx:       #182233;
-  --tx2:      #5b6472;
-  --tx3:      rgba(24,34,51,0.45);
+  --bg3:      #eeeef4;
+  --glass:    rgba(30,32,52,0.03);
+  --glass2:   rgba(30,32,52,0.055);
+  --line:     rgba(30,32,52,0.1);
+  --line2:    rgba(79,70,229,0.22);
+  --tx:       #1a1b2e;
+  --tx2:      #5b5d78;
+  --tx3:      rgba(30,32,52,0.42);
+}
+
+/* Декоративные градиентные линии в тёмной теме смешивают акцент с розовым —
+   на светлом фоне это выглядит аляповато, поэтому здесь делаем их однотонными. */
+[data-theme='light'] .news-detail::before,
+[data-theme='light'] .auth-card::before {
+  background: linear-gradient(90deg, transparent, var(--p), transparent);
+}
+
+[data-theme='light'] .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(79,70,229,0.3);
+}
+[data-theme='light'] .search-input:focus {
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.12);
+}
+[data-theme='light'] .form-group input:focus {
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.14);
+}
+[data-theme='light'] ::selection {
+  background: rgba(79,70,229,0.18);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,6 +88,12 @@ body {
   mix-blend-mode: screen;
 }
 
+/* screen-блендинг на белом фоне гасит любой цвет до почти невидимого —
+   на светлой теме курсору нужен обычный режим смешивания */
+[data-theme='light'] .cursor {
+  mix-blend-mode: normal;
+}
+
 .cursor-follower {
   position: fixed;
   width: 40px; height: 40px;
@@ -76,6 +102,10 @@ body {
   pointer-events: none;
   z-index: 99998;
   transition: width 0.3s, height 0.3s, border-color 0.3s;
+}
+
+[data-theme='light'] .cursor-follower {
+  border-color: rgba(79,70,229,0.45);
 }
 
 .cursor--hover {
@@ -117,9 +147,8 @@ body::after {
 
 [data-theme='light'] body::after {
   background:
-    radial-gradient(800px circle at 10% 20%, rgba(106,85,201,0.035) 0%, transparent 60%),
-    radial-gradient(600px circle at 90% 80%, rgba(178,58,94,0.03) 0%, transparent 60%),
-    radial-gradient(400px circle at 50% 50%, rgba(168,113,15,0.02) 0%, transparent 60%);
+    radial-gradient(900px circle at 15% 15%, rgba(79,70,229,0.035) 0%, transparent 60%),
+    radial-gradient(700px circle at 85% 85%, rgba(79,70,229,0.025) 0%, transparent 60%);
 }
 
 @keyframes ambientShift {
@@ -361,7 +390,7 @@ body::after {
   padding: 1.25rem;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(124,106,245,0.3);
+  border: 1px solid var(--line2);
 }
 
 .calendar-widget::before {
@@ -697,7 +726,12 @@ body::after {
 .news-card__link:hover { color: var(--tx); }
 
 /* ── RECOMMENDED ───────────────────────────────────────────────────────────── */
-.recommended-section { margin-bottom: 1.75rem; animation: fadeSlideDown 0.4s ease 0.1s both; }
+.recommended-section {
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--line);
+  animation: fadeSlideDown 0.4s ease 0.1s both;
+}
 
 .section-title {
   font-family: 'Space Mono', monospace;

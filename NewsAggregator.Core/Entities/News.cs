@@ -1,4 +1,3 @@
-
 namespace NewsAggregator.Core.Entities;
 
 public class News

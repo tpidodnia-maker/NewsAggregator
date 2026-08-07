@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -10,7 +9,7 @@ import { ForgotPassword } from './components/auth/ForgotPassword'
 import { ResetPassword }  from './components/auth/ResetPassword'
 import { PrivateRoute }   from './components/shared/PrivateRoute'
 import { Navbar }         from './components/layout/Navbar'
-import { CursorEffect }   from './components/shared/CursorEffect'   // ← добавили
+import { CursorEffect }   from './components/shared/CursorEffect'
 import './App.css'
 import './styles/theme.css'
 import './styles/news-card.css'
@@ -19,7 +18,7 @@ const App = () => (
   <ThemeProvider>
     <AuthProvider>
       <BrowserRouter>
-        <CursorEffect />   {/* ← добавили: рендерим глобально, вне зависимости от роута */}
+        <CursorEffect />
         <Navbar />
         <div className="app-layout">
           <Routes>

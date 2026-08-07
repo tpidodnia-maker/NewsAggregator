@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import { recommendationsApi, NewsItem } from '../../api/api'
@@ -8,11 +7,17 @@ export const RecommendedNews = () => {
   const [news, setNews]       = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const loadRecommendations = () => {
     recommendationsApi.get()
       .then(res => setNews(res.data))
       .catch(console.error)
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadRecommendations()
+    window.addEventListener('newsagg:read-tracked', loadRecommendations)
+    return () => window.removeEventListener('newsagg:read-tracked', loadRecommendations)
   }, [])
 
   if (loading) return <div className="loading">Загрузка рекомендаций...</div>

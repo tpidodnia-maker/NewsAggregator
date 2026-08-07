@@ -1,10 +1,8 @@
-
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Eye } from 'lucide-react'
-import { newsApi, NewsDetail as INewsDetail } from '../../api/api'
+import { newsApi, NewsDetail as INewsDetail, getImageUrl } from '../../api/api'
 import { getCategoryIcon } from '../../lib/categoryIcons'
-import { getImageUrl } from '../../api/api'
 
 export const NewsDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -31,18 +29,19 @@ export const NewsDetail = () => {
   })
 
   const CategoryIcon = getCategoryIcon(news.categoryName)
+  const imgSrc = getImageUrl(news.imageUrl)
 
   return (
     <div className="news-detail">
       <Link to="/" className="back-link">Назад</Link>
-      {news.imageUrl && (
-  <img
-    src={getImageUrl(news.imageUrl)}
-    alt=""
-    className="news-detail__image"
-    onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-  />
-)}
+      {imgSrc && (
+        <img
+          src={imgSrc}
+          alt=""
+          className="news-detail__image"
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+      )}
       <div className="news-detail__meta">
         <span className="news-card__category">
           <CategoryIcon size={15} strokeWidth={2} />

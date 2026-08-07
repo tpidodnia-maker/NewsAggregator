@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react'
 import { RefreshCw, Loader2 } from 'lucide-react'
 import { newsApi, NewsItem } from '../../api/api'
@@ -95,8 +94,6 @@ export const NewsList = () => {
           onClearDates={() => { setDateFrom(undefined); setDateTo(undefined) }}
         />
 
-        <RecommendedNews />
-
         {loading ? (
           <div className="loading">Загрузка новостей...</div>
         ) : news.length === 0 ? (
@@ -129,6 +126,8 @@ export const NewsList = () => {
             >Вперёд →</button>
           </div>
         )}
+
+        <RecommendedNews />
       </div>
     </div>
   )

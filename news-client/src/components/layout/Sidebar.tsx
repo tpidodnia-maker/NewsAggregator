@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { categoriesApi, Category } from '../../api/api'
 import { CurrencyWidget } from '../shared/CurrencyWidget'

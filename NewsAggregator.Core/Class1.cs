@@ -1,4 +1,4 @@
-﻿namespace NewsAggregator.Core;
+namespace NewsAggregator.Core;
 
 public class Class1
 {

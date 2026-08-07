@@ -26,12 +26,17 @@ public class RecommendationService : IRecommendationService
 
         if (!topCategories.Any())
         {
-            return await _db.News
+            var pool = await _db.News
                 .Include(n => n.Category)
                 .OrderByDescending(n => n.PublishedDate)
-                .Take(count)
-                .Select(n => MapToDto(n))
+                .Take(count * 3)
                 .ToListAsync();
+
+            return pool
+                .OrderBy(_ => Guid.NewGuid())
+                .Take(count)
+                .Select(MapToDto)
+                .ToList();
         }
 
         var readNewsIds = await _db.UserReadHistories

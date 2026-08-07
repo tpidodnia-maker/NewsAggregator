@@ -1,4 +1,3 @@
-
 import { Search } from 'lucide-react'
 import { DateRangePicker } from './DateRangePicker'
 

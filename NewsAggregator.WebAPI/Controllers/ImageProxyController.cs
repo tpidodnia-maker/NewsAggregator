@@ -34,17 +34,24 @@ public class ImageProxyController : ControllerBase
         {
             var client = _httpClientFactory.CreateClient("ImageProxy");
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            // Ключевая часть: подставляем Referer/UA самого сайта-источника,
-            // чтобы обойти защиту от hotlinking
+
+            // Ключевая часть: подставляем Referer/User-Agent самого сайта-источника,
+            // чтобы обойти защиту от hotlinking на новостных сайтах
             request.Headers.TryAddWithoutValidation("Referer", $"{uri.Scheme}://{uri.Host}/");
             request.Headers.TryAddWithoutValidation("User-Agent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            if (!response.IsSuccessStatusCode) return NotFound();
+            if (!response.IsSuccessStatusCode)
+            {
+                return NotFound();
+            }
 
             var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
-            if (!AllowedContentTypes.Contains(contentType)) return BadRequest("Недопустимый тип содержимого");
+            if (!AllowedContentTypes.Contains(contentType))
+            {
+                return BadRequest("Недопустимый тип содержимого");
+            }
 
             var bytes = await response.Content.ReadAsByteArrayAsync();
             Response.Headers.CacheControl = "public, max-age=86400";

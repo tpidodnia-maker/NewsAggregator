@@ -1,4 +1,3 @@
-
 namespace NewsAggregator.Core.DTOs;
 
 public class NewsDto
