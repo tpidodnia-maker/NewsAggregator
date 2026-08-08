@@ -17,7 +17,7 @@ public class CurrencyService : ICurrencyService
     private readonly ILogger<CurrencyService> _logger;
     private const string CacheKey = "currency_rates";
 
-    // Валюты которые показываем
+    // Валюты которые показываем (курс — сколько рублей за 1 ед.)
     private static readonly Dictionary<string, (string Name, string Flag)> Currencies = new()
     {
         ["USD"] = ("Доллар США",        "🇺🇸"),
@@ -44,9 +44,9 @@ public class CurrencyService : ICurrencyService
 
         try
         {
-            // Бесплатный API — не требует ключа
+            // Базовая валюта — российский рубль: курсы отдают «сколько ₽ за 1 ед. валюты»
             var response = await _http.GetStringAsync(
-                "https://api.exchangerate-api.com/v4/latest/USD");
+                "https://api.exchangerate-api.com/v4/latest/RUB");
 
             var json  = JsonDocument.Parse(response);
             var rates = json.RootElement.GetProperty("rates");
@@ -56,12 +56,16 @@ public class CurrencyService : ICurrencyService
             {
                 if (rates.TryGetProperty(code, out var rateEl))
                 {
+                    var forOne = rateEl.GetDecimal();
+                    if (forOne <= 0) continue;
+
                     result.Add(new CurrencyRateDto
                     {
                         Code      = code,
                         Name      = info.Name,
                         Flag      = info.Flag,
-                        Rate      = rateEl.GetDecimal(),
+                        // API с базой RUB даёт «сколько валюты за 1₽» — инвертируем в «₽ за 1 ед.»
+                        Rate      = 1m / forOne,
                         UpdatedAt = DateTimeOffset.UtcNow
                     });
                 }
