@@ -25,14 +25,6 @@
   display: block;
 }
 
-.news-card__image--placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
 .news-card__header {
   padding: 14px 16px 0;
 }

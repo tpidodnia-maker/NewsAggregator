@@ -26,7 +26,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
-builder.Services.AddHttpClient("ImageProxy");
+
+builder.Services.AddHttpClient("ImageProxy", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(25);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+                             | System.Net.DecompressionMethods.Deflate,
+    AllowAutoRedirect = true,
+    MaxAutomaticRedirections = 5,
+    ConnectTimeout    = TimeSpan.FromSeconds(10)
+});
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INewsService, NewsService>();

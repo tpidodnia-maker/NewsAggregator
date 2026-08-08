@@ -1,6 +1,7 @@
-using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.Playwright;
 using NewsAggregator.Core.Entities;
 using NewsAggregator.Core.Interfaces;
 
@@ -10,263 +11,225 @@ public class ParserService : IParserService
 {
     private readonly ILogger<ParserService> _logger;
     private readonly IClassifierService _classifier;
-    private readonly IConfiguration _config;
+    private readonly HttpClient _http;
 
-    private static readonly List<SiteConfig> Sites = new()
+    private static readonly RssSource[] RssSources =
     {
-        new SiteConfig
-        {
-            Name            = "РБК",
-            Url             = "https://www.rbc.ru/",
-            ArticleSelector = "a.item__link, a.search-result__item-title",
-            BaseUrl         = "https://www.rbc.ru"
-        },
-        new SiteConfig
-        {
-            Name            = "Lenta.ru",
-            Url             = "https://lenta.ru/",
-            ArticleSelector = "a.card-full-other, a.topic-card__link",
-            BaseUrl         = "https://lenta.ru"
-        },
-        new SiteConfig
-        {
-            Name            = "RT на русском",
-            Url             = "https://russian.rt.com/",
-            ArticleSelector = "a.link.card__heading, a[class*='card__heading']",
-            BaseUrl         = "https://russian.rt.com"
-        },
-        new SiteConfig
-        {
-            Name            = "Известия",
-            Url             = "https://iz.ru/",
-            ArticleSelector = "a.node__cart__item__inside__info, a[href*='/news/']",
-            BaseUrl         = "https://iz.ru"
-        },
-        new SiteConfig
-        {
-            Name            = "ТАСС",
-            Url             = "https://tass.ru/",
-            ArticleSelector = "a[href*='/politika/'], a[href*='/ekonomika/'], a[href*='/sport/'], a[href*='/nauka/']",
-            BaseUrl         = "https://tass.ru"
-        }
+        new("Lenta.ru",       "https://lenta.ru/rss/",     "https://lenta.ru"),
+        new("ТАСС",           "https://tass.ru/rss/v2.xml", "https://tass.ru"),
+        new("RT на русском",  "https://russian.rt.com/rss", "https://russian.rt.com")
     };
+
+    private static readonly HtmlSource[] HtmlSources =
+    {
+        new("РБК", "https://www.rbc.ru/", "https://www.rbc.ru",
+            // Заголовок и ссылка на статью на главной РБК
+            @"data-role=""title-link"" href=""([^""]+)""[^>]*>\s*<div class=""spaced-items""><span[^>]*>([^<]+)</span>",
+            IsBlockPattern: false),
+        new("Известия", "https://iz.ru/", "https://iz.ru",
+            // Ссылка на карточку; заголовок лежит внутри самой ссылки в <span>
+            @"<a href=""(/\d+/[^""]+)""\s+class=""node__cart__item__inside[^""]*""[^>]*>([\s\S]*?)</a>",
+            IsBlockPattern: true)
+    };
+
+    private static readonly Regex OgImageRegex = new(
+        @"<meta[^>]+(?:property|name)=['""]og:image['""][^>]+content=['""]([^'""]+)['""]",
+        RegexOptions.IgnoreCase);
 
     public ParserService(
         ILogger<ParserService> logger,
-        IClassifierService classifier,
-        IConfiguration config)
+        IClassifierService classifier)
     {
         _logger     = logger;
         _classifier = classifier;
-        _config     = config;
+
+        var handler = new SocketsHttpHandler
+        {
+            AutomaticDecompression   = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            ConnectTimeout           = TimeSpan.FromSeconds(15)
+        };
+
+        _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        _http.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        _http.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ru-RU,ru;q=0.9,en;q=0.8");
     }
 
     public async Task<List<News>> ParseAllSourcesAsync()
     {
-        var allNews = new List<News>();
+        var allNews  = new List<News>();
+        var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        using var playwright = await Playwright.CreateAsync();
-
-        var launchOptions = new BrowserTypeLaunchOptions
-        {
-            Headless = true,
-            Args     = new[] { "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled" }
-        };
-
-        await using var browser = await playwright.Chromium.LaunchAsync(launchOptions);
-
-        var contextOptions = new BrowserNewContextOptions
-        {
-            UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            Locale    = "ru-RU"
-        };
-
-        await using var context = await browser.NewContextAsync(contextOptions);
-        var page = await context.NewPageAsync();
-
-        foreach (var site in Sites)
+        foreach (var site in RssSources)
         {
             try
             {
                 _logger.LogInformation("Парсинг: {Site}", site.Name);
-                var news = await ParseSiteAsync(page, site);
+                var news = await ParseRssAsync(site, seenUrls);
                 allNews.AddRange(news);
-                await Task.Delay(Random.Shared.Next(2000, 4000));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка парсинга {Site}", site.Name);
+                _logger.LogError(ex, "Ошибка парсинга RSS {Site}", site.Name);
             }
+
+            await Task.Delay(Random.Shared.Next(1000, 2500));
         }
 
+        foreach (var site in HtmlSources)
+        {
+            try
+            {
+                _logger.LogInformation("Парсинг: {Site}", site.Name);
+                var news = await ParseHtmlAsync(site, seenUrls);
+                allNews.AddRange(news);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка парсинга HTML {Site}", site.Name);
+            }
+
+            await Task.Delay(Random.Shared.Next(1000, 2500));
+        }
+
+        await EnrichWithImagesAsync(allNews);
+
+        _logger.LogInformation("Итого собрано {Count} новостей", allNews.Count);
         return allNews;
     }
 
-    private async Task<List<News>> ParseSiteAsync(IPage page, SiteConfig site)
+    private async Task<List<News>> ParseRssAsync(RssSource site, HashSet<string> seenUrls)
     {
-        var result   = new List<News>();
-        var seenUrls = new HashSet<string>();
+        var result = new List<News>();
 
+        using var stream = await _http.GetStreamAsync(site.RssUrl);
+        XDocument doc;
         try
         {
-            await page.GotoAsync(site.Url, new PageGotoOptions
-            {
-                Timeout   = 30000,
-                WaitUntil = WaitUntilState.DOMContentLoaded
-            });
-            await Task.Delay(2000);
-            await page.EvaluateAsync("window.scrollTo(0, 800)");
-            await Task.Delay(1000);
+            doc = XDocument.Load(stream);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("Не удалось загрузить {Site}: {Error}", site.Name, ex.Message);
+            _logger.LogWarning("Некорректный RSS {Site}: {Error}", site.Name, ex.Message);
             return result;
         }
 
-        var links = await page.QuerySelectorAllAsync(site.ArticleSelector);
-        _logger.LogInformation("Найдено {Count} ссылок на {Site}", links.Count, site.Name);
+        var ns    = doc.Root?.Name.Namespace ?? XNamespace.None;
+        var items = doc.Descendants(ns + "item").Take(30).ToList();
+        _logger.LogInformation("Найдено {Count} статей в RSS {Site}", items.Count, site.Name);
 
-        if (links.Count == 0)
+        foreach (var el in items)
         {
             try
             {
-                var debugDir = Path.Combine(AppContext.BaseDirectory, "parse-debug");
-                Directory.CreateDirectory(debugDir);
-                var safeSiteName = site.Name.Replace(" ", "_").Replace(".", "_");
-                var pageTitle = await page.TitleAsync();
-                var html = await page.ContentAsync();
-                await File.WriteAllTextAsync(Path.Combine(debugDir, $"{safeSiteName}.html"), html);
-                await page.ScreenshotAsync(new PageScreenshotOptions
-                {
-                    Path = Path.Combine(debugDir, $"{safeSiteName}.png"),
-                    FullPage = false
-                });
-                _logger.LogWarning(
-                    "ДИАГНОСТИКА {Site}: заголовок страницы = \"{Title}\", длина HTML = {Len} символов. " +
-                    "Скриншот и HTML сохранены в {Dir}",
-                    site.Name, pageTitle, html.Length, debugDir);
+                var title = (el.Element(ns + "title")?.Value ?? string.Empty).Trim();
+                if (title.Length < 10) continue;
+
+                var link = (el.Element(ns + "link")?.Value
+                            ?? el.Element(ns + "guid")?.Value
+                            ?? string.Empty).Trim();
+
+                var cleanUrl = NormalizeUrl(link, site.BaseUrl);
+                if (cleanUrl == null || !seenUrls.Add(cleanUrl)) continue;
+
+                var imageUrl = el.Element(ns + "enclosure")?.Attribute("url")?.Value;
+                var desc     = (el.Element(ns + "description")?.Value ?? string.Empty).Trim();
+
+                // RT кладёт превью-картинку в описание как <img src="…"/>, ТАСС — не даёт вовсе.
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    imageUrl = ExtractFirstImage(desc);
+
+                result.Add(CreateArticle(
+                    title,
+                    cleanUrl,
+                    desc,
+                    site.Name,
+                    ParseDate(el.Element(ns + "pubDate")?.Value),
+                    imageUrl));
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Не удалось сохранить диагностику для {Site}", site.Name);
+                _logger.LogDebug("Ошибка RSS-статьи: {Error}", ex.Message);
             }
         }
-
-        foreach (var link in links.Take(25))
-        {
-            try
-            {
-                var href  = await link.GetAttributeAsync("href") ?? "";
-                var rawTitle = (await link.InnerTextAsync()).Trim();
-                var title = System.Text.RegularExpressions.Regex
-                .Replace(rawTitle, @"\s+\d{1,2}:\d{2}$", "")
-                .Trim();
-
-                if (string.IsNullOrWhiteSpace(href) || title.Length < 10) continue;
-
-                var fullUrl = href.StartsWith("http")
-                    ? href
-                    : site.BaseUrl + (href.StartsWith("/") ? href : "/" + href);
-
-                var cleanUrl = fullUrl.Split('?')[0].TrimEnd('/');
-
-                if (seenUrls.Contains(cleanUrl)) continue;
-                seenUrls.Add(cleanUrl);
-
-                var categoryName = _classifier.Classify(title);
-                var imageUrl     = await ExtractImageUrlAsync(link, site.BaseUrl);
-
-                result.Add(new News
-                {
-                    Title         = title.Length > 300 ? title[..300] : title,
-                    Url           = cleanUrl,
-                    Source        = site.Name,
-                    Content       = title.Length > 200 ? title[..200] : title,
-                    PublishedDate = DateTime.UtcNow,
-                    CreatedAt     = DateTime.UtcNow,
-                    CategoryId    = ResolveCategoryId(categoryName),
-                    ImageUrl      = imageUrl
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug("Ошибка ссылки: {Error}", ex.Message);
-            }
-        }
-
-        _logger.LogInformation("Собрано {Count} новостей с {Site}", result.Count, site.Name);
-
-        // Пытаемся заменить thumbnail-картинку с листинга на полноразмерное og:image
-        // со страницы самой статьи — лёгкие HTTP-запросы, без headless-браузера.
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-
-        using var semaphore = new SemaphoreSlim(5);
-        var enrichTasks = result.Select(async item =>
-        {
-            await semaphore.WaitAsync();
-            try
-            {
-                var ogImage = await FetchOgImageAsync(http, item.Url);
-                if (!string.IsNullOrWhiteSpace(ogImage))
-                    item.ImageUrl = ogImage;
-            }
-            finally { semaphore.Release(); }
-        });
-        await Task.WhenAll(enrichTasks);
 
         return result;
     }
 
-    private static readonly System.Text.RegularExpressions.Regex OgImageRegex =
-        new(@"<meta[^>]+property=[""']og:image[""'][^>]+content=[""']([^""']+)[""']",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    private async Task<List<News>> ParseHtmlAsync(HtmlSource site, HashSet<string> seenUrls)
+    {
+        var result = new List<News>();
 
-    private static async Task<string?> FetchOgImageAsync(HttpClient http, string articleUrl)
+        var html    = await _http.GetStringAsync(site.PageUrl);
+        var matches = Regex.Matches(html, site.TitlePattern, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        _logger.LogInformation("Найдено {Count} ссылок на {Site}", matches.Count, site.Name);
+
+        foreach (Match m in matches)
+        {
+            try
+            {
+                var title = site.IsBlockPattern
+                    ? ExtractTitleFromBlock(m.Groups[2].Value)
+                    : StripHtml(m.Groups[2].Value);
+
+                if (title.Length < 10) continue;
+
+                var cleanUrl = NormalizeUrl(m.Groups[1].Value, site.BaseUrl);
+                if (cleanUrl == null || !seenUrls.Add(cleanUrl)) continue;
+
+                result.Add(CreateArticle(
+                    title,
+                    cleanUrl,
+                    title.Length > 200 ? title[..200] : title,
+                    site.Name,
+                    DateTime.UtcNow,
+                    null));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug("Ошибка HTML-статьи: {Error}", ex.Message);
+            }
+        }
+
+        return result;
+    }
+
+    private static string ExtractTitleFromBlock(string block)
+    {
+        var span = Regex.Match(block, "<span>([^<]+)</span>");
+        return span.Success ? StripHtml(span.Groups[1].Value) : string.Empty;
+    }
+
+    private async Task EnrichWithImagesAsync(List<News> allNews)
+    {
+        var withoutImage = allNews.Where(n => string.IsNullOrWhiteSpace(n.ImageUrl)).ToList();
+        if (withoutImage.Count == 0) return;
+
+        using var semaphore = new SemaphoreSlim(8);
+        var tasks = withoutImage.Select(async item =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                // таймаут уже короткий — og:image смотрим только у статей без превью
+                item.ImageUrl = await FetchOgImageAsync(item.Url) ?? item.ImageUrl;
+            }
+            finally { semaphore.Release(); }
+        });
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task<string?> FetchOgImageAsync(string articleUrl)
     {
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-            var html = await http.GetStringAsync(articleUrl, cts.Token);
+            var html = await _http.GetStringAsync(articleUrl, cts.Token);
             var match = OgImageRegex.Match(html);
             return match.Success ? match.Groups[1].Value : null;
-        }
-        catch
-        {
-            return null; // не страшно — останется thumbnail с листинга
-        }
-    }
-
-    /// <summary>
-    /// Пытается найти превью-картинку рядом со ссылкой на статью прямо на странице листинга
-    /// (без захода на саму статью — это было бы слишком дорого по времени).
-    /// Ищет &lt;img&gt; внутри самой ссылки, затем — в ближайшем родительском блоке карточки.
-    /// Возвращает null, если картинки нет — тогда фронтенд покажет плейсхолдер.
-    /// </summary>
-    private static async Task<string?> ExtractImageUrlAsync(IElementHandle link, string baseUrl)
-    {
-        try
-        {
-            var img = await link.QuerySelectorAsync("img");
-
-            if (img == null)
-            {
-                var parent = await link.EvaluateHandleAsync(
-                    "el => el.closest('article, li, div')") as IElementHandle;
-                if (parent != null)
-                    img = await parent.QuerySelectorAsync("img");
-            }
-
-            if (img == null) return null;
-
-            var src = await img.GetAttributeAsync("data-src")
-                      ?? await img.GetAttributeAsync("src");
-
-            if (string.IsNullOrWhiteSpace(src) || src.StartsWith("data:")) return null;
-
-            return src.StartsWith("http") ? src : baseUrl + (src.StartsWith("/") ? src : "/" + src);
         }
         catch
         {
@@ -274,28 +237,73 @@ public class ParserService : IParserService
         }
     }
 
+    private static string? NormalizeUrl(string url, string baseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+
+        var full = url.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? url
+            : baseUrl + (url.StartsWith('/') ? url : "/" + url);
+
+        full = full.Split('?')[0].TrimEnd('/');
+        return string.IsNullOrWhiteSpace(full) ? null : full;
+    }
+
+    private static string StripHtml(string input) =>
+        Regex.Replace(input, "<.*?>", string.Empty).Trim();
+
+    private static string TrimHtml(string input) =>
+        StripHtml(input.Length > 200 ? input[..200] : input);
+
+    private static string? ExtractFirstImage(string html)
+    {
+        var match = Regex.Match(html, "<img[^>]+src=\"([^\"]+)\"", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static DateTime ParseDate(string? value) =>
+        DateTimeOffset.TryParse(value, out var dto) ? dto.UtcDateTime : DateTime.UtcNow;
+
+    private News CreateArticle(
+        string title,
+        string url,
+        string content,
+        string source,
+        DateTime publishedDate,
+        string? imageUrl)
+    {
+var categoryName = _classifier.Classify(title);
+        return new News
+        {
+            Title         = title.Length > 300 ? title[..300] : title,
+            Url           = url,
+            Source        = source,
+            Content       = TrimHtml(content),
+            PublishedDate = publishedDate,
+            CreatedAt     = DateTime.UtcNow,
+            CategoryId    = ResolveCategoryId(categoryName),
+            ImageUrl      = imageUrl
+        };
+    }
+
     private static int ResolveCategoryId(string name) => name switch
     {
-        "Политика"     => 1,
-        "Экономика"    => 2,
-        "Спорт"        => 3,
-        "Технологии"   => 4,
-        "Наука"        => 5,
-        "Культура"     => 6,
-        "Здоровье"     => 7,
-        "Бизнес"       => 8,
-        "Экология"     => 9,
-        "Развлечения"  => 10,
-        "Образование"  => 11,
-        "Путешествия"  => 12,
-        _              => 13
+        "Политика"    => 1,
+        "Экономика"   => 2,
+        "Спорт"       => 3,
+        "Технологии"  => 4,
+        "Наука"       => 5,
+        "Культура"    => 6,
+        "Здоровье"    => 7,
+        "Бизнес"      => 8,
+        "Экология"    => 9,
+        "Развлечения" => 10,
+        "Образование" => 11,
+        "Путешествия" => 12,
+        _             => 13
     };
 
-    private record SiteConfig
-    {
-        public string Name            { get; init; } = string.Empty;
-        public string Url             { get; init; } = string.Empty;
-        public string ArticleSelector { get; init; } = string.Empty;
-        public string BaseUrl         { get; init; } = string.Empty;
-    }
+    private sealed record RssSource(string Name, string RssUrl, string BaseUrl);
+
+    private sealed record HtmlSource(string Name, string PageUrl, string BaseUrl, string TitlePattern, bool IsBlockPattern);
 }

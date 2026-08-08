@@ -21,3 +21,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Кэш изображений прокси
+NewsAggregator.WebAPI/image-cache/
+
+# SQLite WAL/артефакты
+*.db-shm
+*.db-wal

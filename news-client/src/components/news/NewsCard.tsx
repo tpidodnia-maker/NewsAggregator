@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, ImageOff } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { NewsItem, recommendationsApi, getImageUrl } from '../../api/api'
 import { getCategoryIcon } from '../../lib/categoryIcons'
 
@@ -31,8 +31,8 @@ export const NewsCard = ({ news }: Props) => {
 
   return (
     <div className="news-card">
-      <Link to={'/news/' + news.id} onClick={handleClick} className="news-card__media">
-        {src && !imgError ? (
+      {src && !imgError && (
+        <Link to={'/news/' + news.id} onClick={handleClick} className="news-card__media">
           <img
             src={src}
             alt=""
@@ -40,12 +40,8 @@ export const NewsCard = ({ news }: Props) => {
             className="news-card__image"
             onError={() => setImgError(true)}
           />
-        ) : (
-          <div className="news-card__image news-card__image--placeholder">
-            <ImageOff size={22} strokeWidth={1.5} />
-          </div>
-        )}
-      </Link>
+        </Link>
+      )}
 
       <div className="news-card__header">
         <span className="news-card__category">
